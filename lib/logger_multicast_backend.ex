@@ -28,9 +28,13 @@ defmodule LoggerMulticastBackend do
   LoggerMulticastBackend is configured when specified, and supports the following options:
 
   :target - a tuple of the target unicast or multicast address and port. Defaults to: {{224,0,0,224}, 9999}
+
   :interface - If the host has many network interfaces, specify which one to use by IP address. Defaults to: {0,0,0,0}
+
   :level - the level to be logged by this backend. _Note that messages are first filtered by the general `:level` configuration in `:logger`_. Defaults to: :debug
+
   :format - the format message used to print logs. Defaults to: "$time $metadata[$level] $levelpad$message\n"
+
   :metadata - the metadata to be printed by $metadata. Defaults to: [] (no metadata)
   """
 
