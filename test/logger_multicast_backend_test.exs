@@ -1,18 +1,36 @@
+Code.require_file "listener.ex", __DIR__
 defmodule LoggerMulticastBackendTest do
 
-  @moduledoc """
-  Extremely braindead test for now.
-  """
-  
   use ExUnit.Case
   require Logger
 
-  test "logging doesn't crash" do
-    Logger.add_backend LoggerMulticastBackend
-    Logger.debug "this should write to the multicast socket!  make sure it does"
-    Logger.debug "this should write more.  make sure it does"
-    :timer.sleep 1000
+  setup do
+    LoggerMulticastBackendTest.Listener.start
+    Logger.configure_backend LoggerMulticastBackend, [format: "$metadata[$level] $message\n"]
+    :ok
   end
-  
+
+  test "test debug message" do
+    Logger.debug "A debug message"
+    :timer.sleep 20
+    line = GenServer.call TestListener, :get_line
+    assert line == "[debug] A debug message\n"
+  end
+
+  test "test info message" do
+    Logger.info "A info message"
+    :timer.sleep 20
+    line = GenServer.call TestListener, :get_line
+    assert line == "[info] A info message\n"
+  end
+
+  test "info event with error level" do
+    Logger.configure_backend LoggerMulticastBackend, [level: :error]
+    Logger.info "A info message"
+    :timer.sleep 20
+    line = GenServer.call TestListener, :get_line
+    assert line == nil
+  end
+
 end
 
