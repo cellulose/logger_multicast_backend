@@ -1,3 +1,13 @@
+# Change Log
+
+## v0.3.0
+
+Major re-architecture (again)
+
+* Now uses `GenStage` for `Queue` and `Sender` portions.
+* Supports specifying network adapter to bind if system has more then one.
+
+
 ## v0.2.0-dev
 
 Major re-architecture
