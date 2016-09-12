@@ -27,15 +27,28 @@ defmodule LoggerMulticastBackend.Sender do
     {:noreply, [], state}
   end
 
+  def handle_call({:configure, target, interface}, _from, state) do
+    if state.socket, do: :gen_udp.close state.socket
+    opts = @socket_opts ++ [{:ip, interface}] |> List.flatten
+    case :gen_udp.open(0, opts) do
+      {:ok, socket} ->
+        {:reply, :ok, [], %{state | target: target, interface: interface, socket: socket}}
+      _ ->
+        {:reply, :ok, [], %{state | target: target, interface: interface}}
+    end
+  end
+
   @doc false
   # Handles request to send line with no socket defined - attempt to open it
   def handle_info({:send, line}, %{socket: nil} = state) do
-    case :gen_udp.open(0, @socket_opts ++ [ip: state.interface]) do
+    opts = @socket_opts ++ [{:ip, state.interface}] |> List.flatten
+    case :gen_udp.open(0, opts) do
       {:ok, socket} ->
         state =  %{state | socket: socket}
         send_line(line, state)
         {:noreply, [], state}
       _ ->
+        Process.send_after(self, {:send, line}, @socket_retry_time)
         {:noreply, [], state}
     end
   end

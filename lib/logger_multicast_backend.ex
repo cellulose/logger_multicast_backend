@@ -70,17 +70,18 @@ defmodule LoggerMulticastBackend do
     #Add Queue Consumer to state
     state =
       state
-      |> Map.merge(%{queue: queue})
+      |> Map.merge(%{queue: queue, sender: sender})
     {:ok, state}
   end
 
   @doc """
   GenEvent callback to handle runtime configuration of this Backend
   """
-  def handle_call({:configure, options}, %{queue: queue} = state) do
+  def handle_call({:configure, options}, %{queue: queue, sender: sender} = state) do
     state =
       configure(options, state)
-      |> Map.merge(%{queue: queue})
+      |> Map.merge(%{queue: queue, sender: sender})
+    :ok = GenStage.call(sender, {:configure, state.target, state.interface})
     {:ok, :ok, state}
   end
 
